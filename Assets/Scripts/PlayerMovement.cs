@@ -6,15 +6,20 @@ public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] private float moveSpeed = 5f;
     [SerializeField] private float jumpForce = 10f;
+
+    [SerializeField] private GameObject arrowPrefab;
+    [SerializeField] private float shootCooldown = 0.5f; // Cooldown time in seconds.
     
 
     Rigidbody2D rb;
     Animator animator;
     BoxCollider2D myFeetCollider;
+    Transform arrowSpawnPoint;
 
 
     Vector2 moveInput;
     float gravityScaleAtStart;
+    float lastShootTime = -999f; // Track the last time the player shot an arrow.
 
     
     void Start()
@@ -24,6 +29,7 @@ public class PlayerMovement : MonoBehaviour
         int selectedCharacterIndex = PlayerPrefs.GetInt("SelectedCharacter", 0);
         animator = transform.GetChild(0).GetChild(selectedCharacterIndex).GetComponent<Animator>();
         gravityScaleAtStart = rb.gravityScale;
+        arrowSpawnPoint = transform.GetChild(1).GetComponent<Transform>();
     }
 
     void Update()
@@ -46,6 +52,24 @@ public class PlayerMovement : MonoBehaviour
         }        
     }
 
+    void OnAttack(InputValue value)
+    {
+        if(!value.isPressed) return; // Only trigger on button press, not release.
+        if (animator.GetBool("isClimbing")) return; // Prevent shooting while climbing.
+
+        if (Time.time < lastShootTime + shootCooldown) return; // Prevent shooting too quickly.
+        lastShootTime = Time.time;
+
+        animator.SetTrigger("Shoot");
+    }
+
+    public void ShootArrow()
+    {
+        GameObject arrow = Instantiate(arrowPrefab, arrowSpawnPoint.position, Quaternion.identity);
+
+        arrow.GetComponent<ArrowProjectile>().SetDirection(Math.Sign(transform.localScale.x));
+    }
+
     private void IsJumping()
     {
         if (!myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ground")) && !myFeetCollider.IsTouchingLayers(LayerMask.GetMask("Ladders")) )
@@ -55,8 +79,7 @@ public class PlayerMovement : MonoBehaviour
         else
         {
             animator.SetBool("isJumping", false);            
-        }
-        
+        }       
     }
 
 
