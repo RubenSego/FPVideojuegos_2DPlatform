@@ -2,16 +2,21 @@ using UnityEngine;
 
 public class PlayerAnimationEvents : MonoBehaviour
 {
-    PlayerMovement player;
+    PlayerCombat playerCombat;
 
     void Awake()
     {
-        player = GetComponentInParent<PlayerMovement>();
+        playerCombat = GetComponentInParent<PlayerCombat>();
     }
 
     // This method is called from the animation event in the "Shoot" animation clip.
     public void ShootArrow()
     {
-        player.ShootArrow();
+        playerCombat.ShootArrow();
+    }
+
+    public void SwordAttack()
+    {
+        playerCombat.SwordAttack();
     }
 }
